@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Todo List - Node.js & MySQL</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+
+        .todo-form {
+            padding: 30px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-sm {
+            padding: 8px 16px;
+            font-size: 14px;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+        }
+
+        .btn-danger:hover {
+            box-shadow: 0 10px 20px rgba(255, 107, 107, 0.3);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #51cf66 0%, #40c057 100%);
+        }
+
+        .btn-success:hover {
+            box-shadow: 0 10px 20px rgba(81, 207, 102, 0.3);
+        }
+
+        .todos-container {
+            padding: 30px;
+        }
+
+        .todos-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .todos-header h2 {
+            color: #333;
+            font-size: 1.8em;
+        }
+
+        .todo-stats {
+            background: #f8f9fa;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .todo-item {
+            background: #fff;
+            border: 2px solid #f1f3f4;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            padding: 20px;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .todo-item:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .todo-item.completed {
+            background: #f8f9fa;
+            opacity: 0.7;
+        }
+
+        .todo-item.completed .todo-title {
+            text-decoration: line-through;
+            color: #6c757d;
+        }
+
+        .todo-content {
+            flex: 1;
+        }
+
+        .todo-title {
+            font-size: 1.2em;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .todo-description {
+            color: #666;
+            line-height: 1.5;
+            margin-bottom: 15px;
+        }
+
+        .todo-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            color: #999;
+            margin-bottom: 15px;
+        }
+
+        .todo-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+        }
+
+        .empty-state img {
+            width: 100px;
+            opacity: 0.3;
+            margin-bottom: 20px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .error {
+            background: #ffebee;
+            color: #c62828;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #c62828;
+        }
+
+        .success {
+            background: #e8f5e8;
+            color: #2e7d32;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #2e7d32;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                border-radius: 10px;
+            }
+
+            .header {
+                padding: 20px;
+            }
+
+            .header h1 {
+                font-size: 2em;
+            }
+
+            .todo-form,
+            .todos-container {
+                padding: 20px;
+            }
+
+            .todo-actions {
+                flex-direction: column;
+            }
+
+            .todos-header {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📝 Todo List</h1>
+            <p>Organiza tus tareas con Node.js y MySQL</p>
+        </div>
+
+        <div class="todo-form">
+            <div id="message"></div>
+            <form id="todoForm">
+                <div class="form-group">
+                    <label for="title">Título de la tarea:</label>
+                    <input type="text" id="title" name="title" required placeholder="¿Qué necesitas hacer?">
+                </div>
+                <div class="form-group">
+                    <label for="description">Descripción (opcional):</label>
+                    <textarea id="description" name="description" rows="3"
+                        placeholder="Describe tu tarea..."></textarea>
+                </div>
+                <button type="submit" class="btn">➕ Agregar Tarea</button>
+            </form>
+        </div>
+
+        <div class="todos-container">
+            <div class="todos-header">
+                <h2>Mis Tareas</h2>
+                <div class="todo-stats" id="todoStats">
+                    Total: 0 | Completadas: 0 | Pendientes: 0
+                </div>
+            </div>
+            <div id="todosContainer">
+                <div class="loading">Cargando tareas...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class TodoApp {
+            constructor() {
+                this.todos = [];
+                this.init();
+            }
+
+            init() {
+                this.bindEvents();
+                this.loadTodos();
+            }
+
+            bindEvents() {
+                const form = document.getElementById('todoForm');
+                form.addEventListener('submit', (e) => this.handleSubmit(e));
+            }
+
+            async loadTodos() {
+                try {
+                    const response = await fetch('/api/todos');
+                    if (!response.ok) throw new Error('Error al cargar tareas');
+
+                    this.todos = await response.json();
+                    this.renderTodos();
+                    this.updateStats();
+                } catch (error) {
+                    this.showMessage('Error al cargar las tareas', 'error');
+                    document.getElementById('todosContainer').innerHTML =
+                        '<div class="error">Error al cargar las tareas. Verifica la conexión.</div>';
+                }
+            }
+
+            async handleSubmit(e) {
+                e.preventDefault();
+
+                const form = e.target;
+                const formData = new FormData(form);
+                const title = formData.get('title').trim();
+                const description = formData.get('description').trim();
+
+                if (!title) {
+                    this.showMessage('El título es requerido', 'error');
+                    return;
+                }
+
+                try {
+                    const response = await fetch('/api/todos', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ title, description })
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Error al crear la tarea');
+                    }
+
+                    const newTodo = await response.json();
+                    this.todos.unshift(newTodo);
+                    this.renderTodos();
+                    this.updateStats();
+
+                    form.reset();
+                    this.showMessage('¡Tarea creada exitosamente!', 'success');
+                } catch (error) {
+                    this.showMessage('Error al crear la tarea', 'error');
+                }
+            }
+
+            async toggleTodo(id) {
+                try {
+                    const response = await fetch(`/api/todos/${id}/toggle`, {
+                        method: 'PATCH'
+                    });
+
+                    if (!response.ok) throw new Error('Error al actualizar tarea');
+
+                    const updatedTodo = await response.json();
+                    const index = this.todos.findIndex(todo => todo.id === id);
+                    if (index !== -1) {
+                        this.todos[index] = updatedTodo;
+                        this.renderTodos();
+                        this.updateStats();
+                    }
+                } catch (error) {
+                    this.showMessage('Error al actualizar la tarea', 'error');
+                }
+            }
+
+            async deleteTodo(id) {
+                if (!confirm('¿Estás seguro de que quieres eliminar esta tarea?')) {
+                    return;
+                }
+
+                try {
+                    const response = await fetch(`/api/todos/${id}`, {
+                        method: 'DELETE'
+                    });
+
+                    if (!response.ok) throw new Error('Error al eliminar tarea');
+
+                    this.todos = this.todos.filter(todo => todo.id !== id);
+                    this.renderTodos();
+                    this.updateStats();
+                    this.showMessage('Tarea eliminada exitosamente', 'success');
+                } catch (error) {
+                    this.showMessage('Error al eliminar la tarea', 'error');
+                }
+            }
+
+            renderTodos() {
+                const container = document.getElementById('todosContainer');
+
+                if (this.todos.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <div style="font-size: 4em; margin-bottom: 20px;">📝</div>
+                            <h3>No hay tareas aún</h3>
+                            <p>¡Agrega tu primera tarea para comenzar!</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                const todosHTML = this.todos.map(todo => {
+                    const date = new Date(todo.created_at).toLocaleDateString('es-ES', {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    });
+
+                    return `
+                        <div class="todo-item ${todo.completed ? 'completed' : ''}">
+                            <div class="todo-content">
+                                <div class="todo-title">${this.escapeHtml(todo.title)}</div>
+                                ${todo.description ? `<div class="todo-description">${this.escapeHtml(todo.description)}</div>` : ''}
+                                <div class="todo-meta">
+                                    <span>Creada: ${date}</span>
+                                    <span class="status">${todo.completed ? '✅ Completada' : '⏳ Pendiente'}</span>
+                                </div>
+                                <div class="todo-actions">
+                                    <button class="btn btn-sm ${todo.completed ? 'btn-success' : ''}" 
+                                            onclick="app.toggleTodo(${todo.id})">
+                                        ${todo.completed ? '↩️ Marcar pendiente' : '✅ Completar'}
+                                    </button>
+                                    <button class="btn btn-sm btn-danger" onclick="app.deleteTodo(${todo.id})">
+                                        🗑️ Eliminar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+                container.innerHTML = todosHTML;
+            }
+
+            updateStats() {
+                const total = this.todos.length;
+                const completed = this.todos.filter(todo => todo.completed).length;
+                const pending = total - completed;
+
+                document.getElementById('todoStats').textContent =
+                    `Total: ${total} | Completadas: ${completed} | Pendientes: ${pending}`;
+            }
+
+            showMessage(message, type = 'success') {
+                const messageDiv = document.getElementById('message');
+                messageDiv.innerHTML = `<div class="${type}">${message}</div>`;
+
+                setTimeout(() => {
+                    messageDiv.innerHTML = '';
+                }, 3000);
+            }
+
+            escapeHtml(text) {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
+        }
+
+        // Inicializar la aplicación
+        const app = new TodoApp();
+    </script>
+</body>
+
+</html>
