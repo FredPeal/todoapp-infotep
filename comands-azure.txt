@@ -28,6 +28,5 @@ az containerapp create `
   --ingress external `
   --registry-server $ACR_LOGIN_SERVER `
   --cpu 0.5 --memory 1Gi `
-  --min-replicas 1 `
+  --min-replicas 1 
 
-  
