@@ -15,7 +15,7 @@ app.use(express.static("public"));
 // Esperar DB y preparar tabla al arrancar
 (async () => {
   try {
-    await waitForDbReady();
+    // await waitForDbReady();
 
     const createTable = `
       CREATE TABLE IF NOT EXISTS todos (
@@ -27,7 +27,7 @@ app.use(express.static("public"));
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
       )
     `;
-    await dbQuery(createTable);
+    // await dbQuery(createTable);
     console.log("Tabla 'todos' verificada/creada");
 
     // Iniciar servidor
