@@ -1,0 +1,33 @@
+az provider register -n Microsoft.ContainerRegistry --wait
+az provider register -n Microsoft.App --wait
+az provider register -n Microsoft.OperationalInsights --wait
+
+az acr create -g AQUI VAS A PONER EL NOMBRE DEL GRUPO -n AQUI VAS A PONER EL NOMBRE DEL REPOSITORIO --sku Basic
+
+$ACR_NAME = "NOMBRE DEL ACR"
+$ACR_LOGIN_SERVER = az acr show -n $ACR_NAME --query loginServer -o tsv
+
+az acr login -n $ACR_NAME
+
+docker build -t "$ACR_LOGIN_SERVER/todoapp:1.2" -f azure/Dockerfile.node .
+docker push "$ACR_LOGIN_SERVER/todoapp:1.2"
+
+az containerapp env create -g AQUI VAS A PONER EL NOMBRE DEL GRUPO -n aca-env -l eastus2
+
+az acr update -n $ACR_NAME --admin-enabled true
+
+$ACR_LOGIN_SERVER = az acr show -n $ACR_NAME --query loginServer -o tsv
+$ACR_USER  = az acr credential show -n $ACR_NAME --query username -o tsv
+$ACR_PASS  = az acr credential show -n $ACR_NAME --query "passwords[0].value" -o tsv
+
+az containerapp create `
+  -g $RG -n $APP `
+  --environment $ENV `
+  --image $IMAGE `
+  --target-port 3000 `
+  --ingress external `
+  --registry-server $ACR_LOGIN_SERVER `
+  --cpu 0.5 --memory 1Gi `
+  --min-replicas 1 `
+
+  
