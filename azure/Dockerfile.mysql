@@ -1,0 +1,12 @@
+# azure/Dockerfile.mysql
+FROM mysql:8.0
+
+ENV MYSQL_ROOT_PASSWORD=rootpassword \
+    MYSQL_DATABASE=todoapp \
+    MYSQL_USER=todouser \
+    MYSQL_PASSWORD=todopassword
+
+# Importante: el path incluye la carpeta 'azure'
+COPY init.sql /docker-entrypoint-initdb.d/init.sql
+
+CMD ["--default-authentication-plugin=mysql_native_password"]

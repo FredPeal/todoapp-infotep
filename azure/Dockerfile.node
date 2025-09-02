@@ -1,0 +1,31 @@
+# azure/Dockerfile.node
+FROM node:20-alpine
+WORKDIR /app
+
+# (solo si usas deps nativas; si no, quita esta línea)
+RUN apk add --no-cache python3 make g++
+
+# Copia SOLO los manifests primero para cache de capas
+COPY package*.json ./
+
+# Instala producción
+RUN npm install --omit=dev && npm cache clean --force
+
+# Copia tu app (ajusta si tienes más archivos/dirs)
+COPY server.js ./ 
+COPY db.js ./
+COPY healtcheck.js ./
+COPY public ./public
+
+# Usuario no-root
+RUN addgroup -g 1001 -S nodejs && adduser -S nodeuser -u 1001
+RUN chown -R nodeuser:nodejs /app
+USER nodeuser
+
+ENV NODE_ENV=production PORT=3000
+EXPOSE 3000
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD node healthcheck.js
+
+CMD ["node","server.js"]

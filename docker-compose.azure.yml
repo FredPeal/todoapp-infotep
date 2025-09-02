@@ -1,0 +1,27 @@
+version: '3.8'
+services:
+  todoapp:
+    image: todoregistry20241604405.azurecr.io/todoapp:1.0.0
+    ports:
+      - "3000:3000"   # ACA usará 3000 como targetPort para el ingress
+    environment:
+      NODE_ENV: production
+      DB_HOST: mysql-db
+      DB_USER: root
+      DB_PASSWORD: rootpassword   # en prod: secrets de ACA
+      DB_NAME: todoapp
+      DB_PORT: "3306"
+      PORT: "3000"
+    depends_on:
+      - mysql-db
+    networks:
+      - todo-network
+
+  mysql-db:
+    image: todoregistry20241604405.azurecr.io/todo-mysql:1.0.0    # sin ports externos; red interna entre servicios
+    networks:
+      - todo-network
+
+networks:
+  todo-network:
+    driver: bridge
